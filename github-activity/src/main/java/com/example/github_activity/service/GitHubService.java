@@ -2,6 +2,7 @@ package com.example.github_activity.service;
 import com.example.github_activity.model.Activity;
 import com.example.github_activity.exception.GitHubApiException;
 import java.time.Instant;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -98,11 +100,85 @@ public class GitHubService {
                 List<String> details=new ArrayList<>();
                 String actionText=type;
                 JsonNode payload=ev.path("payload");
+                switch(type){
+                    case "PushEvent":{
+
+                        JsonNode commits=payload.path("commits");
+                        int count=commits.isArray()?commits.size():0;
+                        actionText="Pushed "+count+" commit"+(count==1 ? "":"s")+" to"+a.getRepoName();
+                        if(commits.isArray()){
+                            for(JsonNode c : commits){
+                                String m=c.path("message").asText("");
+                                String sha=c.path("sha").asText("");
+                                String author=c.path("author").path("name").asText("");
+                                details.add((sha.isBlank()?"":sha.substring(0,Math.min(7,sha.length())))+" "+(m.isBlank()?"no message":m)+(author.isBlank()?" ":" - "+author));
+                            }
+                        }
+
+                        if(payload.has("compare")){
+                            a.setHtmlUrl(payload.path("compare").asText(a.getHtmlUrl()));
+                        }
+                        break;
+                    }
+                    case "IssuesEvent":{
+                        String act=payload.path("action").asText("");
+                        String title=payload.path("issue").path("title").asText("");
+                        String issueUrl=payload.path("issue").path("html_url").asText(null);
+                        actionText=(act.isBlank()?"IssuesEvent":capitalize(act)+" issue in "+a.getRepoName());
+                        if(!title.isBlank()){
+                            details.add(title);
+                        }
+                        if(issueUrl!=null && !issueUrl.isBlank()){
+                            a.setHtmlUrl(issueUrl);
+                        }
+                        break;
+                    }
+                    case "PullRequestEvent":{
+                        String act=payload.path("action").asText("");
+                        String title=payload.path("pull_request").path("title").asText("");
+                        String prUrl=payload.path("pull_request").path("html_url").asText(null);
+                        actionText=(act.isBlank()?"PullRequestEvent":capitalize(act))+ " pull request in " + a.getRepoName();
+                        if(!title.isBlank()){
+                            details.add(title);
+                        }
+                        if(!prUrl.isBlank() && prUrl!=null){
+                            a.setHtmlUrl(prUrl);
+                        }
+                        break;
+                    }
+                    case "WatchEvent":{
+                        String act=payload.path("action").asText("started");
+                        actionText=capitalize(act)+" starred "+a.getRepoName();
+                        break;
+                    }
+                    case "ForkEvent":{
+                        actionText="Forked "+a.getRepoName();
+                        String forkeeUrl=payload.path("forkee").path("html_url").asText(null);
+                        if(forkeeUrl!=null && !forkeeUrl.isBlank()){
+                            a.setHtmlUrl(forkeeUrl);
+                        }
+                        break;
+                    }
+                    case "CreateEvent":{
+                        String refType=payload.path("ref_type").asText();
+                        String ref=payload.path("ref").asText();
+                        actionText="Created"+(refType.isBlank()?"resource":refType)+(ref.isBlank()?"":" "+ref)+" in "+a.getRepoName();
+                        break;
+                    }
+                    default:{
+                        actionText=type+" in "+(a.getRepoName().isBlank()?"a repo":a.getRepoName());
+                    }
+
+                }
+                a.setActionText(actionText);
+                a.setDetails(details);
+                result.add(a);
             }
+            return result.stream().limit(50).collect(Collectors.toList());
 
         }
-        catch{
-
+        catch(IOException | InterruptedException ex){
+            throw new GitHubApiException("Failed to fetch Github events: "+ex.getMessage(),ex);
         }
     }
 
@@ -116,5 +192,11 @@ public class GitHubService {
         catch(Exception e){
             return null;
         }
+    }
+    private static String capitalize(String s){
+        if(s.isBlank() || s==null){
+            return s;
+        }
+        return s.substring(0,1).toUpperCase()+s.substring(1);
     }
 }
