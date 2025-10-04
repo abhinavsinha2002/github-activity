@@ -28,9 +28,9 @@ public class GitHubActivityController {
     @GetMapping("/user/{username}")
     public String userActivity(@PathVariable String username,@RequestParam(required=false) String token,Model model){
         try{
-            List<Activity> events=gitHubService.getUserEvents(username, token);
+            List<Activity> activities=gitHubService.getUserEvents(username, token);
             model.addAttribute("username",username);
-            model.addAttribute("events",events);
+            model.addAttribute("activities",activities);
             model.addAttribute("providedToken",token!=null && !token.isBlank());
             return "user";
         }

@@ -59,6 +59,7 @@ public class GitHubService {
                     .uri(URI.create(url))
                     .GET()
                     .header("Accept", "application/vnd.github+json")
+                    .header("X-GitHub-Api-Version", "2022-11-28") 
                     .header("User-Agent", "github-activity-app");
 
             String token = optinalToken!=null && !optinalToken.isBlank() ? optinalToken : System.getenv("GITHUB");
