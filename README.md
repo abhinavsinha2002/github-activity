@@ -1,4 +1,4 @@
-https://github.com/abhinavsinha2002/github-activity
+[https://github.com/abhinavsinha2002/github-activity](https://roadmap.sh/projects/github-user-activity)
 
 # GitHub Activity Web Application - Project Documentation
 
