@@ -1,5 +1,3 @@
-[https://github.com/abhinavsinha2002/github-activity](https://roadmap.sh/projects/github-user-activity)
-
 # GitHub Activity Web Application - Project Documentation
 
 ---
@@ -207,6 +205,7 @@ CMD ["java", "-jar", "target/github-activity-0.0.1-SNAPSHOT.jar"]
 * Improve UI/UX for better mobile responsiveness.
 
 ---
-
+# URL of Project
+https://roadmap.sh/projects/github-user-activity
 **Project maintained by:** Abhinav Kumar Sinha
 **Date:** October 2025
