@@ -161,9 +161,9 @@ public class GitHubService {
                         break;
                     }
                     case "CreateEvent":{
-                        String refType=payload.path("ref_type").asText();
-                        String ref=payload.path("ref").asText();
-                        actionText="Created"+(refType.isBlank()?"resource":refType)+(ref.isBlank()?"":" "+ref)+" in "+a.getRepoName();
+                        String refType=payload.path("ref_type").asText("");
+                        String ref=payload.path("ref").asText("");
+                        actionText="Created "+(refType.isBlank()?"resource":refType)+(ref.isBlank()?"":" "+ref)+" in "+a.getRepoName();
                         break;
                     }
                     default:{
