@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: github-activity
+    env: docker
+    plan: free
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/github-activity-0.0.1-SNAPSHOT.jar"
+    envVars:
+      - key: PORT
+        value: 8080
